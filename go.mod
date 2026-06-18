@@ -1,4 +1,4 @@
-module github.com/alvaroeng98/harness-init
+module github.com/alvaroeng98/HarnessInit
 
 go 1.26.3
 
