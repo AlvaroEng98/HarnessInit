@@ -9,7 +9,7 @@ Un solo comando crea los ficheros de contexto, plantillas de sesión y documenta
 **Linux / macOS**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/AlvaroEng98/HarnessInit/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/alvaroeng98/harness-init/main/install.sh | sh
 ```
 
 **Windows (PowerShell)**

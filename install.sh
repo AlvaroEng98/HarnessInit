@@ -16,10 +16,12 @@ esac
 
 VERSION="${VERSION:-$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')}"
 
-URL="https://github.com/${REPO}/releases/download/${VERSION}/${BINARY}-${OS}-${ARCH}"
+ARCHIVE="${BINARY}-${OS}-${ARCH}.tar.gz"
+URL="https://github.com/${REPO}/releases/download/${VERSION}/${ARCHIVE}"
 
 echo "Instalando ${BINARY} ${VERSION} (${OS}/${ARCH})..."
-curl -fsSL "$URL" -o "/tmp/${BINARY}"
+curl -fsSL "$URL" -o "/tmp/${ARCHIVE}"
+tar -xzf "/tmp/${ARCHIVE}" -C /tmp "${BINARY}"
 chmod +x "/tmp/${BINARY}"
 
 if [ -w "$INSTALL_DIR" ]; then
