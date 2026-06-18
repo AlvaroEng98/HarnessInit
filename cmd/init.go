@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alvaroeng98/harness-init/internal/prompt"
-	"github.com/alvaroeng98/harness-init/internal/scaffold"
-	"github.com/alvaroeng98/harness-init/templates"
+	"github.com/alvaroeng98/HarnessInit/internal/prompt"
+	"github.com/alvaroeng98/HarnessInit/internal/scaffold"
+	"github.com/alvaroeng98/HarnessInit/templates"
 	"github.com/spf13/cobra"
 )
 

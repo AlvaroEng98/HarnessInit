@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/alvaroeng98/harness-init/internal/scaffold"
-	"github.com/alvaroeng98/harness-init/templates"
+	"github.com/alvaroeng98/HarnessInit/internal/scaffold"
+	"github.com/alvaroeng98/HarnessInit/templates"
 )
 
 func TestRun_CreatesAllFiles(t *testing.T) {

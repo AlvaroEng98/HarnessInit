@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/alvaroeng98/harness-init/cmd"
+	"github.com/alvaroeng98/HarnessInit/cmd"
 )
 
 func main() {
