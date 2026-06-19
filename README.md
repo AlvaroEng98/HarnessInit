@@ -24,6 +24,16 @@ irm https://raw.githubusercontent.com/alvaroeng98/harness-init/main/install.ps1 
 go install github.com/alvaroeng98/harness-init@latest
 ```
 
+## Desinstalación
+
+**Linux / macOS**
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/alvaroeng98/harness-init/main/uninstall.sh | sh
+```
+
+> Instala en `~/.local/bin`, no requiere `sudo`. Si ese directorio no está en `$PATH`, el script lo indica al finalizar.
+
 ## Uso
 
 ```sh
