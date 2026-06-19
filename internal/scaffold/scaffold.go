@@ -46,6 +46,9 @@ var manifest = []string{
 	"docs/RELIABILITY.md",
 	"data/design-notes.md",
 	"data/retrieval-plan.md",
+	"agents/planner.md",
+	"agents/reviewer.md",
+	"agents/worker.md",
 }
 
 func (s *Scaffolder) Run() (created, skipped []string, err error) {
