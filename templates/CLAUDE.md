@@ -13,11 +13,12 @@ inmediatamente. Reporta el error exacto al usuario. No ejecutes ninguna tarea.
 
 Al comienzo de cada sesión:
 
-1. Ejecuta `pwd` y confirma que estás en la raíz del repositorio esperada.
-2. Lee `claude-progress.md`.
-3. Lee `feature_list.json`.
-4. Revisa los commits recientes con `git log --oneline -5`.
-5. Ejecuta `./init.sh`.
+1. Ejecuta `./init.sh`. **Si falla (exit code ≠ 0), DETENTE INMEDIATAMENTE.** No leas ningún fichero.
+   No ejecutes ninguna tarea. Reporta el error exacto al usuario y espera instrucciones.
+2. Ejecuta `pwd` y confirma que estás en la raíz del repositorio esperada.
+3. Lee `claude-progress.md`.
+4. Lee `feature_list.json`.
+5. Revisa los commits recientes con `git log --oneline -5`.
 6. Lee `.harness-state` para obtener `PROJECT_TYPE`, `FRAMEWORK`, `PACKAGE_MANAGER` y `TEST_RUNNER`.
    - Si `PACKAGE_MANAGER=uv` → instala dependencias con `uv add <pkg>`. Nunca `uv pip install` ni `pip install`.
    - Si `TEST_RUNNER=pytest` → escribe y ejecuta tests con `pytest`. Nunca `python -m unittest`.

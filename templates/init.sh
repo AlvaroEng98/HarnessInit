@@ -195,8 +195,8 @@ echo "==> Framework detectado: $FRAMEWORK"
 echo "==> Working directory: $PWD"
 
 if [[ "$PROJECT_TYPE" == "python" ]]; then
-  if [[ ! -f .venv/bin/activate ]]; then
-    echo "ERROR: No se encontró .venv/bin/activate." >&2
+  if [[ ! -d .venv ]]; then
+    echo "ERROR: No se encontró el directorio .venv." >&2
     echo "       Crea el entorno virtual antes de ejecutar init.sh:" >&2
     echo "         uv venv  |  python -m venv .venv  |  poetry config virtualenvs.in-project true && poetry install" >&2
     exit 1
