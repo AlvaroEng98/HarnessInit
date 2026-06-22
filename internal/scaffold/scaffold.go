@@ -2,6 +2,7 @@ package scaffold
 
 import (
 	"bytes"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -15,6 +16,8 @@ type TemplateData struct {
 	ProjectName string
 	Description string
 	Date        string
+	Language    string
+	Framework   string
 }
 
 type Scaffolder struct {
@@ -52,7 +55,16 @@ var manifest = []string{
 }
 
 func (s *Scaffolder) Run() (created, skipped []string, err error) {
-	for _, rel := range manifest {
+	files := append([]string(nil), manifest...)
+
+	if s.data.Language != "" && s.data.Language != "generic" {
+		archFile := fmt.Sprintf("docs/architecture_%s_%s.md", s.data.Language, s.data.Framework)
+		if _, fsErr := fs.Stat(s.fs, archFile); fsErr == nil {
+			files = append(files, archFile)
+		}
+	}
+
+	for _, rel := range files {
 		dest := filepath.Join(s.dir, rel)
 
 		if _, statErr := os.Stat(dest); statErr == nil && !s.force {
@@ -99,5 +111,11 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 
 		created = append(created, rel)
 	}
+
+	if !s.dryRun && s.data.Language != "" {
+		state := fmt.Sprintf("PROJECT_TYPE=%s\nFRAMEWORK=%s\n", s.data.Language, s.data.Framework)
+		_ = os.WriteFile(filepath.Join(s.dir, ".harness-state"), []byte(state), 0644)
+	}
+
 	return created, skipped, nil
 }

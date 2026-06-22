@@ -170,11 +170,19 @@ case "$PROJECT_TYPE" in
     ;;
 esac
 
+FRAMEWORK="${_FW:-none}"
+
+# Escribe estado detectado solo si no fue provisto por harness-init init
+if [[ ! -f .harness-state ]]; then
+  printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\n' "$PROJECT_TYPE" "$FRAMEWORK" > .harness-state
+fi
+
 # ---------------------------------------------------------------------------
 # Ejecución
 # ---------------------------------------------------------------------------
 
 echo "==> Tipo detectado: $PROJECT_TYPE"
+echo "==> Framework detectado: $FRAMEWORK"
 echo "==> Working directory: $PWD"
 echo "==> Syncing dependencies"
 "${INSTALL_CMD[@]}"

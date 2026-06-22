@@ -15,7 +15,8 @@ Al comienzo de cada sesión:
 3. Lee `feature_list.json`.
 4. Revisa los commits recientes con `git log --oneline -5`.
 5. Ejecuta `./init.sh`.
-6. Verifica si la ruta de smoke o end-to-end de referencia ya está rota.
+6. Lee `.harness-state` (generado por `init.sh`) para obtener `PROJECT_TYPE` y `FRAMEWORK`. Si existe `docs/architecture_{PROJECT_TYPE}_{FRAMEWORK}.md`, léelo antes de cualquier implementación — define la estructura de directorios y capas que debes respetar.
+7. Verifica si la ruta de smoke o end-to-end de referencia ya está rota.
 
 Luego selecciona exactamente una característica inacabada y trabaja solo en esa característica hasta
 que la verifiques o documentes por qué está bloqueada.

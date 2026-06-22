@@ -25,8 +25,8 @@ func TestRun_CreatesAllFiles(t *testing.T) {
 	if len(skipped) != 0 {
 		t.Errorf("esperado 0 omitidos, got %d", len(skipped))
 	}
-	if len(created) != 14 {
-		t.Errorf("esperado 14 creados, got %d: %v", len(created), created)
+	if len(created) != 17 {
+		t.Errorf("esperado 17 creados, got %d: %v", len(created), created)
 	}
 }
 
@@ -46,8 +46,8 @@ func TestRun_SkipsExistingWithoutForce(t *testing.T) {
 	if len(created) != 0 {
 		t.Errorf("esperado 0 creados en segunda pasada, got %d", len(created))
 	}
-	if len(skipped) != 14 {
-		t.Errorf("esperado 14 omitidos, got %d", len(skipped))
+	if len(skipped) != 17 {
+		t.Errorf("esperado 17 omitidos, got %d", len(skipped))
 	}
 }
 
@@ -63,8 +63,8 @@ func TestRun_ForceOverwrites(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(created) != 14 {
-		t.Errorf("esperado 14 con --force, got %d", len(created))
+	if len(created) != 17 {
+		t.Errorf("esperado 17 con --force, got %d", len(created))
 	}
 	if len(skipped) != 0 {
 		t.Errorf("esperado 0 omitidos con --force, got %d", len(skipped))
@@ -122,8 +122,8 @@ func TestRun_DryRunCreatesNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(created) != 14 {
-		t.Errorf("esperado 14 en dry-run, got %d", len(created))
+	if len(created) != 17 {
+		t.Errorf("esperado 17 en dry-run, got %d", len(created))
 	}
 	entries, _ := os.ReadDir(dir)
 	if len(entries) != 0 {
