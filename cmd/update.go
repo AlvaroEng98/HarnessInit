@@ -78,12 +78,32 @@ func runUpdate(_ *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	if err := os.Rename(tmpBin, currentBin); err != nil {
+	if err := replaceFile(tmpBin, currentBin); err != nil {
 		return fmt.Errorf("no se pudo reemplazar el binario: %w", err)
 	}
 
 	fmt.Printf("Actualizado a %s.\n", latestTag)
 	return nil
+}
+
+func replaceFile(src, dst string) error {
+	if err := os.Rename(src, dst); err == nil {
+		return nil
+	}
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		out.Close()
+		return err
+	}
+	return out.Close()
 }
 
 func fetchLatestVersion() (string, error) {
