@@ -8,6 +8,9 @@ Flujo: **Planner → (aprobación usuario) → Worker → Reviewer → [loop si 
 
 ## Bucle Operacional
 
+Si ves un mensaje que contiene `HARNESS_BOOT_FAILED:` en tu contexto, detente
+inmediatamente. Reporta el error exacto al usuario. No ejecutes ninguna tarea.
+
 Al comienzo de cada sesión:
 
 1. Ejecuta `pwd` y confirma que estás en la raíz del repositorio esperada.

@@ -54,6 +54,14 @@ var manifest = []string{
 	"agents/planner.md",
 	"agents/reviewer.md",
 	"agents/worker.md",
+	"claude-settings/settings.json",
+	"claude-settings/scripts/harness-boot.sh",
+}
+
+// destOverride mapea src del embed -> destino real (para renombrar directorios).
+var destOverride = map[string]string{
+	"claude-settings/settings.json":            ".claude/settings.json",
+	"claude-settings/scripts/harness-boot.sh":  ".claude/scripts/harness-boot.sh",
 }
 
 func (s *Scaffolder) Run() (created, skipped []string, err error) {
@@ -69,15 +77,19 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 	}
 
 	for _, rel := range files {
-		dest := filepath.Join(s.dir, rel)
+		destRel := rel
+		if override, ok := destOverride[rel]; ok {
+			destRel = override
+		}
+		dest := filepath.Join(s.dir, destRel)
 
 		if _, statErr := os.Stat(dest); statErr == nil && !s.force {
-			skipped = append(skipped, rel)
+			skipped = append(skipped, destRel)
 			continue
 		}
 
 		if s.dryRun {
-			created = append(created, rel)
+			created = append(created, destRel)
 			continue
 		}
 
@@ -114,11 +126,11 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 			return nil, nil, writeErr
 		}
 
-		if strings.HasSuffix(rel, "init.sh") && runtime.GOOS != "windows" {
+		if runtime.GOOS != "windows" && (strings.HasSuffix(rel, "init.sh") || strings.HasSuffix(rel, "harness-boot.sh")) {
 			_ = os.Chmod(dest, 0755)
 		}
 
-		created = append(created, rel)
+		created = append(created, destRel)
 	}
 
 	if !s.dryRun && s.data.Language != "" {
