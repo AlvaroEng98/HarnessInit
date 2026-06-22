@@ -41,7 +41,7 @@ que la verifiques o documentes por qué está bloqueada.
 | Condición | Acción |
 |-----------|--------|
 | Tarea trivial, 1 archivo | Implementa inline sin agentes |
-| 2+ archivos no triviales | Lanza Planner → lanza Worker sin espera |
+| 2+ archivos no triviales | Lanza Planner → espera `planner-plan.v1` → lanza Worker |
 | Después de cualquier Worker | Siempre lanza Reviewer en contexto fresco |
 | Reviewer devuelve `APPROVED` | Actualizar `feature_list.json`, cerrar sesión |
 | Reviewer devuelve `REQUEST_CHANGES` | Re-lanzar Worker con findings del Reviewer como contexto |
@@ -79,7 +79,7 @@ El Worker devuelve este JSON al terminar su ciclo de implementación.
   "files_modified": ["ruta/archivo1", "ruta/archivo2"],
   "tests_run": ["npm test", "bash tests/smoke.sh"],
   "test_result": "pass | fail | skip",
-  "evidence": "output literal de los tests ejecutados"
+  "evidence": ["línea de output relevante 1", "línea de output relevante 2"]
 }
 ```
 

@@ -5,10 +5,27 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  echo "WARNING: No se encontró repositorio git." >&2
+  echo "         'git log' fallará en los pasos de sesión." >&2
+  echo "         Ejecuta: git init && git add -A && git commit -m 'init'" >&2
+fi
+
 # Cargar estado previo generado por harness-init (si existe)
+# PROJECT_TYPE se preserva (puede ser override manual); el resto se re-detecta siempre.
 if [[ -f .harness-state ]]; then
   # shellcheck source=/dev/null
   source .harness-state
+  unset FRAMEWORK PACKAGE_MANAGER TEST_RUNNER
+fi
+
+_VALID_PROJECT_TYPES="go node python java-maven java-gradle generic"
+if [[ -n "${PROJECT_TYPE:-}" ]]; then
+  if ! echo "$_VALID_PROJECT_TYPES" | grep -qw "$PROJECT_TYPE"; then
+    echo "ERROR: PROJECT_TYPE='$PROJECT_TYPE' en .harness-state no es válido." >&2
+    echo "       Valores aceptados: $_VALID_PROJECT_TYPES" >&2
+    exit 1
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -32,6 +49,7 @@ _detect_project_type() {
 }
 
 _detect_python_framework() {
+  if [[ -n "${FRAMEWORK:-}" ]]; then echo "$FRAMEWORK"; return; fi
   if [[ -f manage.py ]]; then
     echo "django"
   elif grep -qiE "^fastapi" requirements.txt 2>/dev/null || \
@@ -81,6 +99,7 @@ _detect_node_package_manager() {
 }
 
 _detect_node_framework() {
+  if [[ -n "${FRAMEWORK:-}" ]]; then echo "$FRAMEWORK"; return; fi
   if grep -q '"next"' package.json 2>/dev/null; then
     echo "nextjs"
   elif grep -q '"@nestjs/core"' package.json 2>/dev/null; then
@@ -96,7 +115,7 @@ _detect_node_framework() {
 # Construcción de comandos según árbol de decisión
 # ---------------------------------------------------------------------------
 
-PROJECT_TYPE="$(_detect_project_type)"
+PROJECT_TYPE="${PROJECT_TYPE:-$(_detect_project_type)}"
 
 case "$PROJECT_TYPE" in
   go)
@@ -178,13 +197,10 @@ case "$PROJECT_TYPE" in
     ;;
 esac
 
-FRAMEWORK="${_FW:-none}"
+FRAMEWORK="${_FW:-${FRAMEWORK:-none}}"
 
-# Escribe estado detectado solo si no fue provisto por harness-init init
-if [[ ! -f .harness-state ]]; then
-  printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\n' \
-    "$PROJECT_TYPE" "$FRAMEWORK" "${_DEP:-}" "${_TEST:-}" > .harness-state
-fi
+printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\n' \
+  "$PROJECT_TYPE" "$FRAMEWORK" "${_DEP:-}" "${_TEST:-}" > .harness-state
 
 # ---------------------------------------------------------------------------
 # Ejecución
@@ -201,8 +217,18 @@ if [[ "$PROJECT_TYPE" == "python" ]]; then
     echo "         uv venv  |  python -m venv .venv  |  poetry config virtualenvs.in-project true && poetry install" >&2
     exit 1
   fi
+  if [[ ! -f .venv/bin/activate ]]; then
+    echo "ERROR: .venv/bin/activate no encontrado. Entorno virtual roto." >&2
+    echo "       Recrea el entorno: uv venv  |  python -m venv .venv" >&2
+    exit 1
+  fi
   echo "==> Activating virtual environment (.venv)"
   source .venv/bin/activate
+  if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+    echo "ERROR: Activación de .venv falló. VIRTUAL_ENV no está definido." >&2
+    echo "       El entorno puede estar corrupto. Recrea con: uv venv  |  python -m venv .venv" >&2
+    exit 1
+  fi
 fi
 
 echo "==> Syncing dependencies"

@@ -5,10 +5,10 @@ tools:
   - Read
   - Grep
   - Glob
+  - Bash
 disallowedTools:
   - Write
   - Edit
-  - Bash
   - Agent
 model: claude-sonnet-4-6
 effort: high
@@ -37,10 +37,17 @@ No ejecuta comandos. No edita archivos. Solo lee y emite veredicto.
 
 ## Proceso
 
-1. Lee cada archivo en `worker_report.files_modified`.
-2. Verifica que los cambios corresponden al scope de `plan.plan_table`. Incluir número de línea en `findings` cuando sea identificable con Read/Grep.
-3. Busca hallazgos de severidad critical o major (bugs, violaciones de contrato, scope creep).
-4. Emite veredicto basado en evidencia concreta.
+**Bash permitido solo para comandos git de solo lectura** (`git diff`, `git log`, `git show`, `git status`).
+NUNCA ejecutes comandos que modifiquen el repositorio.
+
+1. Ejecuta `git diff --name-only HEAD` para obtener la lista de archivos realmente modificados.
+2. Cross-check contra `worker_report.files_modified`:
+   - Archivos en git diff pero NO en `files_modified` → finding `severity: critical` ("Worker ocultó cambios en <archivo>").
+   - Archivos en `files_modified` pero NO en git diff → finding `severity: major` ("Worker declaró <archivo> sin cambios reales").
+3. Lee cada archivo en `worker_report.files_modified`.
+4. Verifica que los cambios corresponden al scope de `plan.plan_table`. Incluir número de línea en `findings` cuando sea identificable con Read/Grep.
+5. Busca hallazgos de severidad critical o major (bugs, violaciones de contrato, scope creep).
+6. Emite veredicto basado en evidencia concreta.
 
 ## Criterios de Veredicto
 

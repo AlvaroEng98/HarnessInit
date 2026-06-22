@@ -8,12 +8,12 @@ próxima sesión pueda continuar sin adivinar.
 
 Antes de escribir código:
 
-1. Confirma el directorio de trabajo con `pwd`.
-2. Lee `claude-progress.md` para el estado verificado más reciente y el próximo paso.
-3. Lee `feature_list.json` y elige la característica inacabada de mayor prioridad.
-4. Revisa los commits recientes con `git log --oneline -5`.
-5. Ejecuta `./init.sh`.
-6. Ejecuta la verificación de smoke o end-to-end requerida antes de comenzar trabajo nuevo.
+1. Ejecuta `./init.sh`. **Si falla (exit code ≠ 0), DETENTE INMEDIATAMENTE.** Reporta el error exacto y espera instrucciones.
+2. Confirma el directorio de trabajo con `pwd`.
+3. Lee `claude-progress.md` para el estado verificado más reciente y el próximo paso.
+4. Lee `feature_list.json` y elige la característica inacabada de mayor prioridad.
+5. Revisa los commits recientes con `git log --oneline -5`.
+6. Lee `feature_list.json` → campo `smoke_test`. Ejecuta ese comando exacto. Si el campo dice `REPLACE:`, detente y pide al usuario que lo configure antes de continuar.
 
 Si la verificación de referencia ya está fallando, corrígela primero. No apiles trabajo de
 características nuevas sobre un estado inicial roto.

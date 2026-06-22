@@ -44,9 +44,12 @@ No toma decisiones de diseño no acordadas en el plan. No toca archivos fuera de
 1. Confirma `task_id` y lista de archivos permitidos (`plan_table`).
 2. Lee los archivos a modificar antes de editarlos.
 3. Implementa en orden de `priority` dentro de `plan_table`.
-4. Ejecuta cada comando en `validation_commands`.
-5. Registra output literal de los tests.
-6. Devuelve `worker-report.v1`.
+4. Para cada comando en `validation_commands`:
+   - Inicializa `retry_count = 0`.
+   - Ejecuta el comando. Registra output en `evidence`.
+   - Si falla: incrementa `retry_count`. **Verifica `retry_count < 2` antes de reintentar.**
+   - Si `retry_count == 2` y sigue fallando: documenta en `evidence` y DETENTE. No reintentar.
+5. Devuelve `worker-report.v1` con `retry_count` final.
 
 ## Salida: worker-report.v1
 
@@ -57,7 +60,8 @@ No toma decisiones de diseño no acordadas en el plan. No toca archivos fuera de
   "files_modified": ["ruta/archivo1"],
   "tests_run": ["npm test"],
   "test_result": "pass | fail | skip",
-  "evidence": "output literal de los comandos de validación"
+  "retry_count": 0,
+  "evidence": ["línea relevante de output 1", "línea relevante de output 2"]
 }
 ```
 
@@ -67,6 +71,6 @@ No toma decisiones de diseño no acordadas en el plan. No toca archivos fuera de
 - No marcar `test_result: pass` sin haber ejecutado los comandos.
 - Si un test falla, documentarlo en `evidence` — no omitirlo.
 - Si encuentra un bloqueo no anticipado en el plan, devolver `test_result: fail` con explicación en `evidence`.
-- No re-lanzar ni auto-corregir más de 2 veces por comando fallido. Documentar y devolver.
+- Máximo 2 reintentos por comando. Contador explícito en `retry_count`. Si `retry_count == 2` → DETENTE, no reintentar.
 - `test_result: skip` solo cuando `validation_commands` está vacío en el plan aprobado. No usar para omitir tests que fallaron.
 - Si `plan_table.file` no existe, crearlo con Write. No asumir que el archivo ya existe.
