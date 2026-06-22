@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/alvaroeng98/HarnessInit/internal/scaffold"
@@ -128,5 +129,65 @@ func TestRun_DryRunCreatesNothing(t *testing.T) {
 	entries, _ := os.ReadDir(dir)
 	if len(entries) != 0 {
 		t.Errorf("dry-run creó %d ficheros, esperado 0", len(entries))
+	}
+}
+
+func TestRun_ArchOverride_UsesPythonTemplate(t *testing.T) {
+	dir := t.TempDir()
+	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
+		ProjectName: "P",
+		Language:    "python",
+		Framework:   "fastapi",
+	}, false, false)
+	if _, _, err := s.Run(); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, "docs", "ARCHITECTURE.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(data), "FastAPI") {
+		t.Errorf("docs/ARCHITECTURE.md no contiene contenido de python/fastapi")
+	}
+}
+
+func TestRun_ArchOverride_StillCreates17Files(t *testing.T) {
+	dir := t.TempDir()
+	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
+		ProjectName: "P",
+		Language:    "python",
+		Framework:   "fastapi",
+	}, false, false)
+	created, _, err := s.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(created) != 17 {
+		t.Errorf("con archOverride esperado 17, got %d: %v", len(created), created)
+	}
+}
+
+func TestRun_WritesHarnessState(t *testing.T) {
+	dir := t.TempDir()
+	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
+		ProjectName: "P",
+		Language:    "python",
+		Framework:   "fastapi",
+	}, false, false)
+	if _, _, err := s.Run(); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, ".harness-state"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := string(data)
+	if !strings.Contains(content, "PROJECT_TYPE=python") {
+		t.Errorf(".harness-state no contiene PROJECT_TYPE=python, got: %q", content)
+	}
+	if !strings.Contains(content, "FRAMEWORK=fastapi") {
+		t.Errorf(".harness-state no contiene FRAMEWORK=fastapi, got: %q", content)
 	}
 }

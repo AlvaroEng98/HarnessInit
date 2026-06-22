@@ -57,10 +57,12 @@ var manifest = []string{
 func (s *Scaffolder) Run() (created, skipped []string, err error) {
 	files := append([]string(nil), manifest...)
 
+	// archOverride mapea destino -> fuente cuando el template específico existe
+	archOverride := ""
 	if s.data.Language != "" && s.data.Language != "generic" {
 		archFile := fmt.Sprintf("docs/architecture_%s_%s.md", s.data.Language, s.data.Framework)
 		if _, fsErr := fs.Stat(s.fs, archFile); fsErr == nil {
-			files = append(files, archFile)
+			archOverride = archFile
 		}
 	}
 
@@ -81,7 +83,12 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 			return nil, nil, mkErr
 		}
 
-		content, readErr := fs.ReadFile(s.fs, rel)
+		src := rel
+		if rel == "docs/ARCHITECTURE.md" && archOverride != "" {
+			src = archOverride
+		}
+
+		content, readErr := fs.ReadFile(s.fs, src)
 		if readErr != nil {
 			return nil, nil, readErr
 		}
