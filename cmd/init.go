@@ -42,11 +42,20 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	packageManager := ""
+	testRunner := ""
+	if language == "python" {
+		packageManager = "uv"
+		testRunner = "pytest"
+	}
+
 	s := scaffold.New(templates.FS, flagDir, scaffold.TemplateData{
-		ProjectName: name,
-		Description: description,
-		Language:    language,
-		Framework:   framework,
+		ProjectName:    name,
+		Description:    description,
+		Language:       language,
+		Framework:      framework,
+		PackageManager: packageManager,
+		TestRunner:     testRunner,
 	}, flagForce, flagDryRun)
 
 	created, skipped, err := s.Run()

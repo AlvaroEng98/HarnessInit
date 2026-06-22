@@ -5,6 +5,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
+# Cargar estado previo generado por harness-init (si existe)
+if [[ -f .harness-state ]]; then
+  # shellcheck source=/dev/null
+  source .harness-state
+fi
+
 # ---------------------------------------------------------------------------
 # Detección de tipo de proyecto
 # ---------------------------------------------------------------------------
@@ -40,6 +46,7 @@ _detect_python_framework() {
 }
 
 _detect_python_dep_manager() {
+  if [[ -n "${PACKAGE_MANAGER:-}" ]]; then echo "$PACKAGE_MANAGER"; return; fi
   if [[ -f uv.lock ]] || grep -q '\[tool\.uv\]' pyproject.toml 2>/dev/null; then
     echo "uv"
   elif [[ -f poetry.lock ]] || grep -q '\[tool\.poetry\]' pyproject.toml 2>/dev/null; then
@@ -52,6 +59,7 @@ _detect_python_dep_manager() {
 }
 
 _detect_python_test_engine() {
+  if [[ -n "${TEST_RUNNER:-}" ]]; then echo "$TEST_RUNNER"; return; fi
   if [[ -f pytest.ini ]] || [[ -f conftest.py ]] || \
      grep -q '\[tool\.pytest' pyproject.toml 2>/dev/null; then
     echo "pytest"
@@ -174,7 +182,8 @@ FRAMEWORK="${_FW:-none}"
 
 # Escribe estado detectado solo si no fue provisto por harness-init init
 if [[ ! -f .harness-state ]]; then
-  printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\n' "$PROJECT_TYPE" "$FRAMEWORK" > .harness-state
+  printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\n' \
+    "$PROJECT_TYPE" "$FRAMEWORK" "${_DEP:-}" "${_TEST:-}" > .harness-state
 fi
 
 # ---------------------------------------------------------------------------
@@ -184,6 +193,18 @@ fi
 echo "==> Tipo detectado: $PROJECT_TYPE"
 echo "==> Framework detectado: $FRAMEWORK"
 echo "==> Working directory: $PWD"
+
+if [[ "$PROJECT_TYPE" == "python" ]]; then
+  if [[ ! -f .venv/bin/activate ]]; then
+    echo "ERROR: No se encontró .venv/bin/activate." >&2
+    echo "       Crea el entorno virtual antes de ejecutar init.sh:" >&2
+    echo "         uv venv  |  python -m venv .venv  |  poetry config virtualenvs.in-project true && poetry install" >&2
+    exit 1
+  fi
+  echo "==> Activating virtual environment (.venv)"
+  source .venv/bin/activate
+fi
+
 echo "==> Syncing dependencies"
 "${INSTALL_CMD[@]}"
 

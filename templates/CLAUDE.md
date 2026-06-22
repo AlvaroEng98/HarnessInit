@@ -15,7 +15,10 @@ Al comienzo de cada sesión:
 3. Lee `feature_list.json`.
 4. Revisa los commits recientes con `git log --oneline -5`.
 5. Ejecuta `./init.sh`.
-6. Lee `.harness-state` (generado por `init.sh`) para obtener `PROJECT_TYPE` y `FRAMEWORK`. Si existe `docs/architecture_{PROJECT_TYPE}_{FRAMEWORK}.md`, léelo antes de cualquier implementación — define la estructura de directorios y capas que debes respetar.
+6. Lee `.harness-state` para obtener `PROJECT_TYPE`, `FRAMEWORK`, `PACKAGE_MANAGER` y `TEST_RUNNER`.
+   - Si `PACKAGE_MANAGER=uv` → instala dependencias con `uv add <pkg>`. Nunca `uv pip install` ni `pip install`.
+   - Si `TEST_RUNNER=pytest` → escribe y ejecuta tests con `pytest`. Nunca `python -m unittest`.
+   Si existe `docs/architecture_{PROJECT_TYPE}_{FRAMEWORK}.md`, léelo antes de cualquier implementación — define la estructura de directorios y capas que debes respetar.
 7. Verifica si la ruta de smoke o end-to-end de referencia ya está rota.
 
 Luego selecciona exactamente una característica inacabada y trabaja solo en esa característica hasta
@@ -34,7 +37,7 @@ que la verifiques o documentes por qué está bloqueada.
 | Condición | Acción |
 |-----------|--------|
 | Tarea trivial, 1 archivo | Implementa inline sin agentes |
-| 2+ archivos no triviales | Lanza Planner → espera aprobación → lanza Worker |
+| 2+ archivos no triviales | Lanza Planner → lanza Worker sin espera |
 | Después de cualquier Worker | Siempre lanza Reviewer en contexto fresco |
 | Reviewer devuelve `APPROVED` | Actualizar `feature_list.json`, cerrar sesión |
 | Reviewer devuelve `REQUEST_CHANGES` | Re-lanzar Worker con findings del Reviewer como contexto |
@@ -46,7 +49,7 @@ que la verifiques o documentes por qué está bloqueada.
 
 ### planner-plan.v1
 
-El Planner devuelve este JSON antes de que el Worker pueda comenzar. El orchestrator **bloquea** hasta recibir aprobación explícita del usuario.
+El Planner devuelve este JSON antes de que el Worker pueda comenzar.
 
 ```json
 {

@@ -13,11 +13,13 @@ import (
 )
 
 type TemplateData struct {
-	ProjectName string
-	Description string
-	Date        string
-	Language    string
-	Framework   string
+	ProjectName    string
+	Description    string
+	Date           string
+	Language       string
+	Framework      string
+	PackageManager string
+	TestRunner     string
 }
 
 type Scaffolder struct {
@@ -120,7 +122,8 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 	}
 
 	if !s.dryRun && s.data.Language != "" {
-		state := fmt.Sprintf("PROJECT_TYPE=%s\nFRAMEWORK=%s\n", s.data.Language, s.data.Framework)
+		state := fmt.Sprintf("PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\n",
+			s.data.Language, s.data.Framework, s.data.PackageManager, s.data.TestRunner)
 		_ = os.WriteFile(filepath.Join(s.dir, ".harness-state"), []byte(state), 0644)
 	}
 

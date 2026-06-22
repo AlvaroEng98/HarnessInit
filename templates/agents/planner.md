@@ -73,5 +73,4 @@ No escribe código. No edita archivos. Solo lee y planifica.
 - Solo incluir archivos que realmente necesitan cambio.
 - `priority` 1 = primero, número mayor = después.
 - Si no hay comandos de validación claros, marcar el riesgo — no inventar comandos.
-- El orchestrator bloquea la sesión hasta que el usuario aprueba este plan.
 - Si el usuario rechaza el plan y solicita cambios, releer los archivos afectados, ajustar `plan_table`/`risks` y devolver un nuevo `planner-plan.v1`. No devolver el mismo plan con cambios cosméticos.
