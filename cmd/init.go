@@ -13,8 +13,6 @@ import (
 var (
 	flagName        string
 	flagDescription string
-	flagLanguage    string
-	flagFramework   string
 	flagDir         string
 	flagForce       bool
 	flagDryRun      bool
@@ -29,25 +27,21 @@ var initCmd = &cobra.Command{
 func init() {
 	initCmd.Flags().StringVar(&flagName, "name", "", "nombre del proyecto")
 	initCmd.Flags().StringVar(&flagDescription, "description", "", "descripción del proyecto (default = nombre)")
-	initCmd.Flags().StringVar(&flagLanguage, "language", "", "lenguaje del proyecto")
-	initCmd.Flags().StringVar(&flagFramework, "framework", "", "framework del proyecto")
 	initCmd.Flags().StringVar(&flagDir, "dir", ".", "directorio destino")
 	initCmd.Flags().BoolVar(&flagForce, "force", false, "sobreescribir ficheros existentes")
 	initCmd.Flags().BoolVar(&flagDryRun, "dry-run", false, "mostrar ficheros sin crearlos")
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
-	name, description, language, framework, err := prompt.Resolve(flagName, flagDescription, flagLanguage, flagFramework)
+	name, description, err := prompt.Resolve(flagName, flagDescription)
 	if err != nil {
 		return err
 	}
 
-	packageManager := ""
-	testRunner := ""
-	if language == "python" {
-		packageManager = "uv"
-		testRunner = "pytest"
-	}
+	language := "python"
+	framework := "fastapi"
+	packageManager := "uv"
+	testRunner := "pytest"
 
 	s := scaffold.New(templates.FS, flagDir, scaffold.TemplateData{
 		ProjectName:    name,

@@ -1,5 +1,7 @@
 # Arquitectura: Python / FastAPI
 
+> Fuente de verdad de estructura. `CLAUDE.md` traduce estas reglas en instrucciones operativas para el agente.
+
 ## Estructura de directorios
 
 ```

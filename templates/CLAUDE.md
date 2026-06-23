@@ -22,11 +22,30 @@ Al comienzo de cada sesión:
 6. Lee `.harness-state` para obtener `PROJECT_TYPE`, `FRAMEWORK`, `PACKAGE_MANAGER` y `TEST_RUNNER`.
    - Si `PACKAGE_MANAGER=uv` → instala dependencias con `uv add <pkg>`. Nunca `uv pip install` ni `pip install`.
    - Si `TEST_RUNNER=pytest` → escribe y ejecuta tests con `pytest`. Nunca `python -m unittest`.
-   Si existe `docs/architecture_{PROJECT_TYPE}_{FRAMEWORK}.md`, léelo antes de cualquier implementación — define la estructura de directorios y capas que debes respetar.
+   Lee `docs/ARCHITECTURE.md`. Ver **Contrato de Arquitectura** más abajo.
 7. Verifica si la ruta de smoke o end-to-end de referencia ya está rota.
 
 Luego selecciona exactamente una característica inacabada y trabaja solo en esa característica hasta
 que la verifiques o documentes por qué está bloqueada.
+
+## Contrato de Arquitectura
+
+`docs/ARCHITECTURE.md` es la fuente de verdad para estructura de directorios, capas y sus restricciones.
+
+**Reglas operativas:**
+
+1. Antes de crear un fichero nuevo → consulta la tabla de capas en `ARCHITECTURE.md` para determinar dónde va.
+2. Antes de añadir lógica a una capa → verifica su columna "Prohibido" en `ARCHITECTURE.md`.
+3. No crees directorios fuera de la estructura definida en `ARCHITECTURE.md`.
+4. Si el caso no está contemplado en `ARCHITECTURE.md` → consulta al usuario antes de improvisar.
+
+**Jerarquía de documentos:**
+
+| Decisión | Fuente autoritativa |
+|----------|---------------------|
+| Estructura de directorios y asignación de capas | `ARCHITECTURE.md` |
+| Flujo del agente (Planner / Worker / Reviewer) | `CLAUDE.md` |
+| Contradicción entre ambos | Notificar al usuario antes de actuar |
 
 ## Reglas
 
