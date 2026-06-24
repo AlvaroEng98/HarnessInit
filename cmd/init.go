@@ -3,19 +3,18 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
-	"github.com/alvaroeng98/HarnessInit/internal/prompt"
 	"github.com/alvaroeng98/HarnessInit/internal/scaffold"
 	"github.com/alvaroeng98/HarnessInit/templates"
 	"github.com/spf13/cobra"
 )
 
 var (
-	flagName        string
-	flagDescription string
-	flagDir         string
-	flagForce       bool
-	flagDryRun      bool
+	flagName   string
+	flagDir    string
+	flagForce  bool
+	flagDryRun bool
 )
 
 var initCmd = &cobra.Command{
@@ -25,22 +24,24 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
-	initCmd.Flags().StringVar(&flagName, "name", "", "nombre del proyecto")
-	initCmd.Flags().StringVar(&flagDescription, "description", "", "descripción del proyecto (default = nombre)")
+	initCmd.Flags().StringVar(&flagName, "name", "", "nombre del proyecto (default = nombre del directorio destino)")
 	initCmd.Flags().StringVar(&flagDir, "dir", ".", "directorio destino")
 	initCmd.Flags().BoolVar(&flagForce, "force", false, "sobreescribir ficheros existentes")
 	initCmd.Flags().BoolVar(&flagDryRun, "dry-run", false, "mostrar ficheros sin crearlos")
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
-	name, description, err := prompt.Resolve(flagName, flagDescription)
-	if err != nil {
-		return err
+	name := flagName
+	if name == "" {
+		abs, err := filepath.Abs(flagDir)
+		if err != nil {
+			return err
+		}
+		name = filepath.Base(abs)
 	}
 
 	s := scaffold.New(templates.FS, flagDir, scaffold.TemplateData{
 		ProjectName: name,
-		Description: description,
 	}, flagForce, flagDryRun)
 
 	created, skipped, err := s.Run()

@@ -5,7 +5,7 @@ LOCK="/tmp/harness-boot-$(echo "$PWD" | md5sum | cut -c1-8).done"
 [ -f "$LOCK" ] && exit 0
 
 # Salir silencioso si no es entorno harness
-[ -f ".harness-state" ] || [ -f "feature_list.json" ] || exit 0
+[ -f "feature_list.json" ] || exit 0
 
 if [ ! -f "init.sh" ]; then
   echo "HARNESS_BOOT_FAILED: init.sh no encontrado en $(pwd). El entorno no está inicializado."

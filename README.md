@@ -37,15 +37,15 @@ curl -fsSL https://raw.githubusercontent.com/alvaroeng98/harness-init/main/unins
 ## Uso
 
 ```sh
-harness-init init --name "mi-proyecto" --description "Descripción del proyecto"
+harness-init init --name "mi-proyecto"
 ```
 
-Todos los flags son opcionales. Sin `--name`, el CLI los solicita de forma interactiva.
+Todos los flags son opcionales. El CLI no hace preguntas: sin `--name`, usa el nombre del
+directorio destino.
 
 | Flag | Por defecto | Descripción |
 |------|-------------|-------------|
-| `--name` | interactivo | Nombre del proyecto |
-| `--description` | igual que `--name` | Descripción corta |
+| `--name` | nombre del directorio destino | Nombre del proyecto |
 | `--dir` | `.` | Directorio destino |
 | `--force` | `false` | Sobreescribir ficheros existentes |
 | `--dry-run` | `false` | Mostrar ficheros sin crearlos |

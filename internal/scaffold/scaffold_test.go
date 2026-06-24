@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"testing"
 
 	"github.com/alvaroeng98/HarnessInit/internal/scaffold"
@@ -16,7 +15,6 @@ func TestRun_CreatesAllFiles(t *testing.T) {
 	dir := t.TempDir()
 	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
 		ProjectName: "TestProj",
-		Description: "desc",
 	}, false, false)
 
 	created, skipped, err := s.Run()
@@ -76,7 +74,6 @@ func TestRun_InterpolatesFeatureList(t *testing.T) {
 	dir := t.TempDir()
 	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
 		ProjectName: "MiProyecto",
-		Description: "desc",
 	}, false, false)
 	if _, _, err := s.Run(); err != nil {
 		t.Fatal(err)
@@ -176,6 +173,6 @@ func TestRun_DoesNotWriteHarnessState(t *testing.T) {
 	}
 
 	if _, err := os.Stat(filepath.Join(dir, ".harness-state")); !os.IsNotExist(err) {
-		t.Errorf("el scaffold no debe escribir .harness-state; init.sh lo genera en el primer arranque")
+		t.Errorf("el scaffold no debe escribir .harness-state")
 	}
 }

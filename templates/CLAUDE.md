@@ -19,10 +19,10 @@ Al comienzo de cada sesión:
 3. Lee `claude-progress.md`.
 4. Lee `feature_list.json`.
 5. Revisa los commits recientes con `git log --oneline -5`.
-6. Lee `.harness-state`. `init.sh` resolvió el stack y dejó los comandos listos:
+6. Los comandos del proyecto viven en `init.sh` (`INSTALL_CMD` / `VERIFY_CMD` / `START_CMD`).
    - Instala dependencias con `INSTALL_CMD`. Verifica con `VERIFY_CMD`. Arranca con `START_CMD`.
-   - Usa exactamente esos comandos; no asumas un gestor concreto (no impongas `uv`/`pip`/`pytest`
-     salvo que `.harness-state` los resuelva así).
+   - Usa exactamente esos comandos. Si alguno sigue en `REPLACE:`, detente y pide al usuario que lo
+     configure antes de continuar (ver **Primer uso**).
    Lee `docs/ARCHITECTURE.md`. Ver **Contrato de Arquitectura** más abajo.
 7. Lee `feature_list.json` → campo `smoke_test`. Ejecuta ese comando exacto para ver si la ruta de
    referencia ya está rota. Si el campo dice `REPLACE:`, detente y pide al usuario que lo configure
@@ -36,6 +36,7 @@ que la verifiques o documentes por qué está bloqueada.
 Un proyecto recién generado trae placeholders que debes configurar antes de la primera
 sesión productiva:
 
+- `init.sh` → comandos `INSTALL_CMD` / `VERIFY_CMD` / `START_CMD` (vienen como `REPLACE:`).
 - `feature_list.json` → campo `smoke_test` y las entradas `REPLACE:`.
 - `docs/ARCHITECTURE.md` → estructura de directorios y capas (ver Contrato de Arquitectura).
 

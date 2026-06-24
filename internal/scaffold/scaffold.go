@@ -13,7 +13,6 @@ import (
 
 type TemplateData struct {
 	ProjectName string
-	Description string
 	Date        string
 }
 
