@@ -5,6 +5,15 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
+# Modo de ejecución:
+#   bootstrap (default): instala dependencias + sanity ligero. Lo que corre el hook en cada sesión.
+#   verify             : corre la suite de verificación completa. Bajo demanda (./init.sh verify).
+MODE="${1:-bootstrap}"
+if [[ "$MODE" != "bootstrap" && "$MODE" != "verify" ]]; then
+  echo "ERROR: modo '$MODE' inválido. Usa: bootstrap | verify" >&2
+  exit 1
+fi
+
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "WARNING: No se encontró repositorio git." >&2
   echo "         'git log' fallará en los pasos de sesión." >&2
@@ -16,7 +25,7 @@ fi
 if [[ -f .harness-state ]]; then
   # shellcheck source=/dev/null
   source .harness-state
-  unset FRAMEWORK PACKAGE_MANAGER TEST_RUNNER
+  unset FRAMEWORK PACKAGE_MANAGER TEST_RUNNER INSTALL_CMD VERIFY_CMD START_CMD
 fi
 
 _VALID_PROJECT_TYPES="go node python java-maven java-gradle generic"
@@ -199,8 +208,11 @@ esac
 
 FRAMEWORK="${_FW:-${FRAMEWORK:-none}}"
 
-printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\n' \
-  "$PROJECT_TYPE" "$FRAMEWORK" "${_DEP:-}" "${_TEST:-}" > .harness-state
+# Persiste tipo/stack + comandos resueltos. CLAUDE.md consume INSTALL_CMD/VERIFY_CMD/START_CMD
+# de forma genérica, sin asumir gestor concreto. %q los deja seguros para re-sourcing.
+printf 'PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\nINSTALL_CMD=%q\nVERIFY_CMD=%q\nSTART_CMD=%q\n' \
+  "$PROJECT_TYPE" "$FRAMEWORK" "${_DEP:-}" "${_TEST:-}" \
+  "${INSTALL_CMD[*]}" "${VERIFY_CMD[*]}" "${START_CMD[*]}" > .harness-state
 
 # ---------------------------------------------------------------------------
 # Ejecución
@@ -234,8 +246,24 @@ fi
 echo "==> Syncing dependencies"
 "${INSTALL_CMD[@]}"
 
-echo "==> Running baseline verification"
-"${VERIFY_CMD[@]}"
+if [[ "$MODE" == "verify" ]]; then
+  echo "==> Running baseline verification"
+  set +e
+  "${VERIFY_CMD[@]}"
+  _RC=$?
+  set -e
+  if [[ $_RC -ne 0 ]]; then
+    # pytest exit 5 = no se recogieron tests. No es fatal en un proyecto sin tests aún.
+    if [[ "$PROJECT_TYPE" == "python" && $_RC -eq 5 ]]; then
+      echo "WARNING: no se encontraron tests (pytest exit 5). Continuando." >&2
+    else
+      echo "ERROR: la verificación falló (exit $_RC)." >&2
+      exit "$_RC"
+    fi
+  fi
+else
+  echo "==> Bootstrap completo. Verificación bajo demanda: ./init.sh verify"
+fi
 
 echo "==> Startup command"
 printf '    %q' "${START_CMD[@]}"

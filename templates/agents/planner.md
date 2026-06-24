@@ -8,7 +8,9 @@ tools:
 disallowedTools:
   - Write
   - Edit
+  - MultiEdit
   - Agent
+  - Task
 model: claude-opus-4-8
 effort: high
 maxTurns: 35
@@ -74,3 +76,15 @@ No escribe código. No edita archivos. Solo lee y planifica.
 - `priority` 1 = primero, número mayor = después.
 - Si no hay comandos de validación claros, marcar el riesgo — no inventar comandos.
 - Si el usuario rechaza el plan y solicita cambios, releer los archivos afectados, ajustar `plan_table`/`risks` y devolver un nuevo `planner-plan.v1`. No devolver el mismo plan con cambios cosméticos.
+
+## Regla de retorno
+
+El ÚLTIMO bloque de tu respuesta SIEMPRE debe ser texto (el Return Envelope).
+NUNCA termines con una llamada a herramienta.
+Si necesitas guardar algo (git, archivo), hazlo ANTES de escribir el Return Envelope.
+
+**Status**: success | partial | blocked
+**Summary**: [1-2 oraciones de qué se planificó]
+**Contract**: planner-plan.v1
+**Next**: [próxima acción recomendada]
+**Risks**: [riesgos encontrados, o "None"]

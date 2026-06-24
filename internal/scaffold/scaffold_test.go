@@ -26,8 +26,8 @@ func TestRun_CreatesAllFiles(t *testing.T) {
 	if len(skipped) != 0 {
 		t.Errorf("esperado 0 omitidos, got %d", len(skipped))
 	}
-	if len(created) != 19 {
-		t.Errorf("esperado 19 creados, got %d: %v", len(created), created)
+	if len(created) != 20 {
+		t.Errorf("esperado 20 creados, got %d: %v", len(created), created)
 	}
 }
 
@@ -47,8 +47,8 @@ func TestRun_SkipsExistingWithoutForce(t *testing.T) {
 	if len(created) != 0 {
 		t.Errorf("esperado 0 creados en segunda pasada, got %d", len(created))
 	}
-	if len(skipped) != 19 {
-		t.Errorf("esperado 19 omitidos, got %d", len(skipped))
+	if len(skipped) != 20 {
+		t.Errorf("esperado 20 omitidos, got %d", len(skipped))
 	}
 }
 
@@ -64,8 +64,8 @@ func TestRun_ForceOverwrites(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(created) != 19 {
-		t.Errorf("esperado 19 con --force, got %d", len(created))
+	if len(created) != 20 {
+		t.Errorf("esperado 20 con --force, got %d", len(created))
 	}
 	if len(skipped) != 0 {
 		t.Errorf("esperado 0 omitidos con --force, got %d", len(skipped))
@@ -142,8 +142,8 @@ func TestRun_DryRunCreatesNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(created) != 19 {
-		t.Errorf("esperado 19 en dry-run, got %d", len(created))
+	if len(created) != 20 {
+		t.Errorf("esperado 20 en dry-run, got %d", len(created))
 	}
 	entries, _ := os.ReadDir(dir)
 	if len(entries) != 0 {
@@ -151,62 +151,31 @@ func TestRun_DryRunCreatesNothing(t *testing.T) {
 	}
 }
 
-func TestRun_ArchOverride_UsesPythonTemplate(t *testing.T) {
+func TestRun_GeneratesAgentsInClaudeDir(t *testing.T) {
 	dir := t.TempDir()
-	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
-		ProjectName: "P",
-		Language:    "python",
-		Framework:   "fastapi",
-	}, false, false)
+	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{ProjectName: "P"}, false, false)
 	if _, _, err := s.Run(); err != nil {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(dir, "docs", "ARCHITECTURE.md"))
-	if err != nil {
-		t.Fatal(err)
+	for _, name := range []string{"orchestrator.md", "planner.md", "reviewer.md", "worker.md"} {
+		if _, err := os.Stat(filepath.Join(dir, ".claude", "agents", name)); err != nil {
+			t.Errorf(".claude/agents/%s no existe: %v", name, err)
+		}
 	}
-	if !strings.Contains(string(data), "FastAPI") {
-		t.Errorf("docs/ARCHITECTURE.md no contiene contenido de python/fastapi")
-	}
-}
-
-func TestRun_ArchOverride_StillCreates19Files(t *testing.T) {
-	dir := t.TempDir()
-	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
-		ProjectName: "P",
-		Language:    "python",
-		Framework:   "fastapi",
-	}, false, false)
-	created, _, err := s.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(created) != 19 {
-		t.Errorf("con archOverride esperado 19, got %d: %v", len(created), created)
+	if _, err := os.Stat(filepath.Join(dir, "agents")); !os.IsNotExist(err) {
+		t.Errorf("el directorio agents/ no debería existir en la raíz del proyecto")
 	}
 }
 
-func TestRun_WritesHarnessState(t *testing.T) {
+func TestRun_DoesNotWriteHarnessState(t *testing.T) {
 	dir := t.TempDir()
-	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{
-		ProjectName: "P",
-		Language:    "python",
-		Framework:   "fastapi",
-	}, false, false)
+	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{ProjectName: "P"}, false, false)
 	if _, _, err := s.Run(); err != nil {
 		t.Fatal(err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(dir, ".harness-state"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	content := string(data)
-	if !strings.Contains(content, "PROJECT_TYPE=python") {
-		t.Errorf(".harness-state no contiene PROJECT_TYPE=python, got: %q", content)
-	}
-	if !strings.Contains(content, "FRAMEWORK=fastapi") {
-		t.Errorf(".harness-state no contiene FRAMEWORK=fastapi, got: %q", content)
+	if _, err := os.Stat(filepath.Join(dir, ".harness-state")); !os.IsNotExist(err) {
+		t.Errorf("el scaffold no debe escribir .harness-state; init.sh lo genera en el primer arranque")
 	}
 }

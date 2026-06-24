@@ -19,20 +19,36 @@ Al comienzo de cada sesión:
 3. Lee `claude-progress.md`.
 4. Lee `feature_list.json`.
 5. Revisa los commits recientes con `git log --oneline -5`.
-6. Lee `.harness-state` para obtener `PROJECT_TYPE`, `FRAMEWORK`, `PACKAGE_MANAGER` y `TEST_RUNNER`.
-   - Si `PACKAGE_MANAGER=uv` → instala dependencias con `uv add <pkg>`. Nunca `uv pip install` ni `pip install`.
-   - Si `TEST_RUNNER=pytest` → escribe y ejecuta tests con `pytest`. Nunca `python -m unittest`.
+6. Lee `.harness-state`. `init.sh` resolvió el stack y dejó los comandos listos:
+   - Instala dependencias con `INSTALL_CMD`. Verifica con `VERIFY_CMD`. Arranca con `START_CMD`.
+   - Usa exactamente esos comandos; no asumas un gestor concreto (no impongas `uv`/`pip`/`pytest`
+     salvo que `.harness-state` los resuelva así).
    Lee `docs/ARCHITECTURE.md`. Ver **Contrato de Arquitectura** más abajo.
-7. Verifica si la ruta de smoke o end-to-end de referencia ya está rota.
+7. Lee `feature_list.json` → campo `smoke_test`. Ejecuta ese comando exacto para ver si la ruta de
+   referencia ya está rota. Si el campo dice `REPLACE:`, detente y pide al usuario que lo configure
+   antes de continuar (ver **Primer uso**).
 
 Luego selecciona exactamente una característica inacabada y trabaja solo en esa característica hasta
 que la verifiques o documentes por qué está bloqueada.
 
+## Primer uso
+
+Un proyecto recién generado trae placeholders que debes configurar antes de la primera
+sesión productiva:
+
+- `feature_list.json` → campo `smoke_test` y las entradas `REPLACE:`.
+- `docs/ARCHITECTURE.md` → estructura de directorios y capas (ver Contrato de Arquitectura).
+
+Si encuentras un `REPLACE:` o un `docs/ARCHITECTURE.md` vacío, pídele al usuario que lo complete.
+No improvises contenido de arquitectura por tu cuenta.
+
 ## Contrato de Arquitectura
 
-`docs/ARCHITECTURE.md` es la fuente de verdad para estructura de directorios, capas y sus restricciones.
+`docs/ARCHITECTURE.md` es la fuente de verdad para estructura de directorios, capas y sus
+restricciones **cuando tiene contenido**. Si está vacío o en placeholder, no lo trates como
+autoritativo: pide al usuario configurarlo (ver **Primer uso**) y no bloquees el resto del arranque.
 
-**Reglas operativas:**
+**Reglas operativas (aplican cuando `ARCHITECTURE.md` tiene contenido):**
 
 1. Antes de crear un fichero nuevo → consulta la tabla de capas en `ARCHITECTURE.md` para determinar dónde va.
 2. Antes de añadir lógica a una capa → verifica su columna "Prohibido" en `ARCHITECTURE.md`.
@@ -57,16 +73,8 @@ que la verifiques o documentes por qué está bloqueada.
 
 ## Reglas de Delegación
 
-| Condición | Acción |
-|-----------|--------|
-| Tarea trivial, 1 archivo | Implementa inline sin agentes |
-| 2+ archivos no triviales | Lanza Planner → espera `planner-plan.v1` → lanza Worker |
-| Después de cualquier Worker | Siempre lanza Reviewer en contexto fresco |
-| Reviewer devuelve `APPROVED` | Actualizar `feature_list.json`, cerrar sesión |
-| Reviewer devuelve `REQUEST_CHANGES` | Re-lanzar Worker con findings del Reviewer como contexto |
-| Reviewer devuelve `BLOCKED` | Escalar al usuario. No reintentar automáticamente |
-
-**Regla crítica**: El orchestrator nunca implementa código directamente si la tarea toca 2+ archivos. Delegar siempre.
+Ver `.claude/agents/orchestrator.md`. El agente Orchestrator implementa
+las reglas de delegación declarativas. Esta sección es solo referencia rápida.
 
 ## Contratos de Resultado
 

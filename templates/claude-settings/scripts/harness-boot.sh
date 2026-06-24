@@ -17,4 +17,19 @@ if ! bash init.sh 2>&1; then
   exit 1
 fi
 
+# Validar presencia de agentes requeridos
+REQUIRED_AGENTS=(".claude/agents/planner.md" ".claude/agents/worker.md" ".claude/agents/reviewer.md")
+MISSING_AGENTS=()
+for agent in "${REQUIRED_AGENTS[@]}"; do
+  if [ ! -f "$agent" ]; then
+    MISSING_AGENTS+=("$agent")
+  fi
+done
+
+if [ ${#MISSING_AGENTS[@]} -gt 0 ]; then
+  echo "HARNESS_BOOT_FAILED: agentes faltantes: ${MISSING_AGENTS[*]}"
+  echo "  Ejecuta: harness-init init --force para regenerar los archivos del harness."
+  exit 1
+fi
+
 touch "$LOCK"

@@ -6,14 +6,8 @@ próxima sesión pueda continuar sin adivinar.
 
 ## Flujo de Trabajo de Inicio
 
-Antes de escribir código:
-
-1. Ejecuta `./init.sh`. **Si falla (exit code ≠ 0), DETENTE INMEDIATAMENTE.** Reporta el error exacto y espera instrucciones.
-2. Confirma el directorio de trabajo con `pwd`.
-3. Lee `claude-progress.md` para el estado verificado más reciente y el próximo paso.
-4. Lee `feature_list.json` y elige la característica inacabada de mayor prioridad.
-5. Revisa los commits recientes con `git log --oneline -5`.
-6. Lee `feature_list.json` → campo `smoke_test`. Ejecuta ese comando exacto. Si el campo dice `REPLACE:`, detente y pide al usuario que lo configure antes de continuar.
+El protocolo operativo y la secuencia de arranque viven en `CLAUDE.md` (§Bucle Operacional).
+Esa es la única fuente. Síguela antes de escribir código.
 
 Si la verificación de referencia ya está fallando, corrígela primero. No apiles trabajo de
 características nuevas sobre un estado inicial roto.

@@ -74,3 +74,15 @@ No toma decisiones de diseño no acordadas en el plan. No toca archivos fuera de
 - Máximo 2 reintentos por comando. Contador explícito en `retry_count`. Si `retry_count == 2` → DETENTE, no reintentar.
 - `test_result: skip` solo cuando `validation_commands` está vacío en el plan aprobado. No usar para omitir tests que fallaron.
 - Si `plan_table.file` no existe, crearlo con Write. No asumir que el archivo ya existe.
+
+## Regla de retorno
+
+El ÚLTIMO bloque de tu respuesta SIEMPRE debe ser texto (el Return Envelope).
+NUNCA termines con una llamada a herramienta.
+Si necesitas guardar algo (git, archivo), hazlo ANTES de escribir el Return Envelope.
+
+**Status**: success | partial | blocked
+**Summary**: [1-2 oraciones de qué se implementó]
+**Contract**: worker-report.v1
+**Next**: [próxima acción recomendada]
+**Risks**: [riesgos encontrados, o "None"]

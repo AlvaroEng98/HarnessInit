@@ -2,7 +2,6 @@ package scaffold
 
 import (
 	"bytes"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -13,13 +12,9 @@ import (
 )
 
 type TemplateData struct {
-	ProjectName    string
-	Description    string
-	Date           string
-	Language       string
-	Framework      string
-	PackageManager string
-	TestRunner     string
+	ProjectName string
+	Description string
+	Date        string
 }
 
 type Scaffolder struct {
@@ -51,6 +46,7 @@ var manifest = []string{
 	"docs/RELIABILITY.md",
 	"data/design-notes.md",
 	"data/retrieval-plan.md",
+	"agents/orchestrator.md",
 	"agents/planner.md",
 	"agents/reviewer.md",
 	"agents/worker.md",
@@ -60,21 +56,16 @@ var manifest = []string{
 
 // destOverride mapea src del embed -> destino real (para renombrar directorios).
 var destOverride = map[string]string{
-	"claude-settings/settings.json":            ".claude/settings.json",
-	"claude-settings/scripts/harness-boot.sh":  ".claude/scripts/harness-boot.sh",
+	"claude-settings/settings.json":           ".claude/settings.json",
+	"claude-settings/scripts/harness-boot.sh": ".claude/scripts/harness-boot.sh",
+	"agents/orchestrator.md":                  ".claude/agents/orchestrator.md",
+	"agents/planner.md":                       ".claude/agents/planner.md",
+	"agents/reviewer.md":                      ".claude/agents/reviewer.md",
+	"agents/worker.md":                        ".claude/agents/worker.md",
 }
 
 func (s *Scaffolder) Run() (created, skipped []string, err error) {
 	files := append([]string(nil), manifest...)
-
-	// archOverride mapea destino -> fuente cuando el template específico existe
-	archOverride := ""
-	if s.data.Language != "" && s.data.Language != "generic" {
-		archFile := fmt.Sprintf("docs/architecture_%s_%s.md", s.data.Language, s.data.Framework)
-		if _, fsErr := fs.Stat(s.fs, archFile); fsErr == nil {
-			archOverride = archFile
-		}
-	}
 
 	for _, rel := range files {
 		destRel := rel
@@ -97,12 +88,7 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 			return nil, nil, mkErr
 		}
 
-		src := rel
-		if rel == "docs/ARCHITECTURE.md" && archOverride != "" {
-			src = archOverride
-		}
-
-		content, readErr := fs.ReadFile(s.fs, src)
+		content, readErr := fs.ReadFile(s.fs, rel)
 		if readErr != nil {
 			return nil, nil, readErr
 		}
@@ -131,12 +117,6 @@ func (s *Scaffolder) Run() (created, skipped []string, err error) {
 		}
 
 		created = append(created, destRel)
-	}
-
-	if !s.dryRun && s.data.Language != "" {
-		state := fmt.Sprintf("PROJECT_TYPE=%s\nFRAMEWORK=%s\nPACKAGE_MANAGER=%s\nTEST_RUNNER=%s\n",
-			s.data.Language, s.data.Framework, s.data.PackageManager, s.data.TestRunner)
-		_ = os.WriteFile(filepath.Join(s.dir, ".harness-state"), []byte(state), 0644)
 	}
 
 	return created, skipped, nil
