@@ -1,7 +1,7 @@
 #Requires -Version 5.0
 $ErrorActionPreference = "Stop"
 
-$Repo    = "alvaroeng98/harness-init"
+$Repo    = "AlvaroEng98/HarnessInit"
 $Binary  = "harness-init"
 $InstDir = "$env:LOCALAPPDATA\Programs\harness-init"
 
@@ -18,12 +18,17 @@ if (-not $env:VERSION) {
     $Version = $env:VERSION
 }
 
-$Url  = "https://github.com/$Repo/releases/download/$Version/$Binary-windows-$Arch.exe"
-$Dest = "$InstDir\$Binary.exe"
+$Archive = "$Binary-windows-$Arch.zip"
+$Url     = "https://github.com/$Repo/releases/download/$Version/$Archive"
+$TmpZip  = "$env:TEMP\$Archive"
+$Dest    = "$InstDir\$Binary.exe"
 
 Write-Host "Instalando $Binary $Version (windows/$Arch)..."
 New-Item -ItemType Directory -Force -Path $InstDir | Out-Null
-Invoke-WebRequest -Uri $Url -OutFile $Dest
+Invoke-WebRequest -Uri $Url -OutFile $TmpZip
+Expand-Archive -Path $TmpZip -DestinationPath $env:TEMP -Force
+Move-Item -Force -Path "$env:TEMP\$Binary.exe" -Destination $Dest
+Remove-Item -Force $TmpZip
 
 $path = [Environment]::GetEnvironmentVariable("PATH", "User")
 if ($path -notlike "*$InstDir*") {

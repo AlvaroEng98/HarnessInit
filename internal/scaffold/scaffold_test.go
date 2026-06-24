@@ -1,6 +1,7 @@
 package scaffold_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -162,6 +163,63 @@ func TestRun_GeneratesAgentsInClaudeDir(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "agents")); !os.IsNotExist(err) {
 		t.Errorf("el directorio agents/ no debería existir en la raíz del proyecto")
+	}
+}
+
+func TestUpgrade_OverwritesOwnedPreservesState(t *testing.T) {
+	dir := t.TempDir()
+	s := scaffold.New(templates.FS, dir, scaffold.TemplateData{ProjectName: "P"}, false, false)
+	if _, _, err := s.Run(); err != nil {
+		t.Fatal(err)
+	}
+
+	// El usuario modifica un fichero de estado y uno del harness.
+	featurePath := filepath.Join(dir, "feature_list.json")
+	claudePath := filepath.Join(dir, "CLAUDE.md")
+	if err := os.WriteFile(featurePath, []byte(`{"project":"P","mi_progreso":"NO BORRAR"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(claudePath, []byte("CONTENIDO MODIFICADO"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	s2 := scaffold.New(templates.FS, dir, scaffold.TemplateData{ProjectName: "P"}, false, false)
+	updated, preserved, err := s2.Upgrade()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(updated) != 11 {
+		t.Errorf("esperado 11 actualizados, got %d: %v", len(updated), updated)
+	}
+	if len(preserved) != 9 {
+		t.Errorf("esperado 9 preservados, got %d: %v", len(preserved), preserved)
+	}
+
+	// feature_list.json se preserva.
+	feature, _ := os.ReadFile(featurePath)
+	if !bytes.Contains(feature, []byte("NO BORRAR")) {
+		t.Errorf("feature_list.json fue sobrescrito; debía preservarse")
+	}
+
+	// CLAUDE.md se restaura desde la plantilla.
+	claude, _ := os.ReadFile(claudePath)
+	if bytes.Equal(claude, []byte("CONTENIDO MODIFICADO")) {
+		t.Errorf("CLAUDE.md no fue actualizado; debía sobrescribirse")
+	}
+}
+
+func TestWriteReadVersion(t *testing.T) {
+	dir := t.TempDir()
+
+	if v := scaffold.ReadVersion(dir); v != "" {
+		t.Errorf("dir sin marcador debe devolver \"\", got %q", v)
+	}
+
+	if err := scaffold.WriteVersion(dir, "v1.2.3"); err != nil {
+		t.Fatal(err)
+	}
+	if v := scaffold.ReadVersion(dir); v != "v1.2.3" {
+		t.Errorf("ReadVersion = %q, want v1.2.3", v)
 	}
 }
 

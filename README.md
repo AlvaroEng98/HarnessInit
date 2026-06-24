@@ -21,7 +21,7 @@ irm https://raw.githubusercontent.com/alvaroeng98/harness-init/main/install.ps1 
 **Desde el código fuente**
 
 ```sh
-go install github.com/alvaroeng98/harness-init@latest
+go install github.com/alvaroeng98/HarnessInit@latest
 ```
 
 ## Desinstalación
@@ -50,6 +50,28 @@ directorio destino.
 | `--force` | `false` | Sobreescribir ficheros existentes |
 | `--dry-run` | `false` | Mostrar ficheros sin crearlos |
 
+### Actualizar un proyecto ya inicializado
+
+Cuando publicas una versión nueva del harness, los proyectos creados con una versión anterior
+pueden actualizarse sin perder tu trabajo:
+
+```sh
+harness-init upgrade --dir "mi-proyecto"
+```
+
+`upgrade` **sobrescribe solo los ficheros del harness** (protocolo y tooling: `CLAUDE.md`,
+`AGENTS.md`, `.claude/agents/*`, `.claude/settings.json`, `.claude/scripts/harness-boot.sh`,
+rúbricas y checklists) y **preserva tu estado** (`feature_list.json`, `init.sh` con tus comandos,
+`claude-progress.md`, `session-handoff.md`, `docs/`, `data/`). Escribe la versión aplicada en
+`.harness-version`; si el proyecto ya está en la versión actual, no hace nada.
+
+| Flag | Por defecto | Descripción |
+|------|-------------|-------------|
+| `--dir` | `.` | Directorio del proyecto a actualizar |
+| `--dry-run` | `false` | Mostrar cambios sin aplicarlos |
+
+Revisa el resultado con `git diff` antes de confirmar.
+
 ## Ficheros generados
 
 ```
@@ -69,7 +91,7 @@ data/design-notes.md         # Notas de diseño
 data/retrieval-plan.md       # Plan de recuperación de datos
 ```
 
-Los ficheros que contienen `{{` se renderizan como plantillas Go con `ProjectName`, `Description` y `Date`.
+Los ficheros que contienen `{{` se renderizan como plantillas Go con `ProjectName` y `Date`.
 
 ## Desarrollo
 

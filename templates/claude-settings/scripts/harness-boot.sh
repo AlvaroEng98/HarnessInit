@@ -18,7 +18,7 @@ if ! bash init.sh 2>&1; then
 fi
 
 # Validar presencia de agentes requeridos
-REQUIRED_AGENTS=(".claude/agents/planner.md" ".claude/agents/worker.md" ".claude/agents/reviewer.md")
+REQUIRED_AGENTS=(".claude/agents/orchestrator.md" ".claude/agents/planner.md" ".claude/agents/worker.md" ".claude/agents/reviewer.md")
 MISSING_AGENTS=()
 for agent in "${REQUIRED_AGENTS[@]}"; do
   if [ ! -f "$agent" ]; then

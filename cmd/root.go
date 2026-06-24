@@ -55,15 +55,11 @@ func printUpdateNotice(ch chan string) {
 }
 
 func isUpdateCommand() bool {
-	for _, arg := range os.Args[1:] {
-		if arg == "update" {
-			return true
-		}
-	}
-	return false
+	return len(os.Args) > 1 && os.Args[1] == "update"
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(upgradeCmd)
 }

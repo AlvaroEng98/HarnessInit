@@ -1,6 +1,6 @@
 BINARY := harness-init
-VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS := -ldflags "-s -w -X github.com/alvaroeng98/harness-init/cmd.version=$(VERSION)"
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null | sed 's/^v//' || echo "dev")
+LDFLAGS := -ldflags "-s -w -X github.com/alvaroeng98/HarnessInit/cmd.version=$(VERSION)"
 
 .PHONY: build build-all test install clean
 

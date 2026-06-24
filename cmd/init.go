@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/alvaroeng98/HarnessInit/internal/scaffold"
@@ -66,11 +65,14 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	if err := scaffold.WriteVersion(flagDir, version); err != nil {
+		return err
+	}
+
 	fmt.Printf("\n%d ficheros procesados (%d creados, %d omitidos).\n", total, len(created), len(skipped))
 	if len(created) > 0 {
 		fmt.Println("Ejecuta: ./init.sh")
 	}
 
-	_ = os.Stderr
 	return nil
 }

@@ -1,3 +1,9 @@
 elecctions.md
 SPEC-harnessinit-agent-upgrades.md
 .kiro
+
+# Build artifacts
+HarnessInit
+harness-init
+*.exe
+dist/

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-REPO="alvaroeng98/HarnessInit"
+REPO="AlvaroEng98/HarnessInit"
 BINARY="harness-init"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 

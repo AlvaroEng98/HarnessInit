@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	repoOwner = "alvaroeng98"
+	repoOwner = "AlvaroEng98"
 	repoName  = "HarnessInit"
 	binaryName = "harness-init"
 )
@@ -116,6 +116,10 @@ func fetchLatestVersion() (string, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("GitHub API devolvió HTTP %d", resp.StatusCode)
+	}
+
 	var payload struct {
 		TagName string `json:"tag_name"`
 	}
@@ -155,7 +159,8 @@ func downloadAndExtract(url string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if hdr.Name != binaryName && hdr.Name != binaryName+".exe" {
+		base := filepath.Base(hdr.Name)
+		if base != binaryName && base != binaryName+".exe" {
 			continue
 		}
 
