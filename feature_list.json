@@ -1,9 +1,4 @@
 {
-  "_template": {
-    "version": "1.0",
-    "purpose": "Generic feature tracking manifest for AI-assisted development.",
-    "instructions": "Replace every __PLACEHOLDER__ with your project's values. Remove the entire _template and _example sections before use. Keys starting with '_' are metadata — delete them for production."
-  },
   "project": "__YOUR_PROJECT_NAME__",
   "description": "__ONE_LINE_DESCRIPTION_OF_YOUR_PROJECT__",
   "rules": {
@@ -22,51 +17,15 @@
   "features": [
     {
       "id": 1,
-      "name": "__SNAKE_CASE_FEATURE_NAME__",
-      "title": "__Human Readable Feature Title__",
-      "description": "__What this feature does and why it exists__",
-      "_sdd_required": false,
-      "acceptance": [
-        "__Given/When/Then or plain acceptance criterion 1__",
-        "__Acceptance criterion 2__",
-        "__Acceptance criterion 3__"
-      ],
-      "status": "__pending | spec_ready | in_progress | done | blocked__"
-    },
-    {
-      "id": 2,
-      "name": "__COMPLEX_FEATURE_WITH_SDD__",
-      "title": "__Feature That Needs a Spec Doc__",
-      "description": "__Description of a feature requiring a Software Design Document__",
-      "_sdd_required": true,
+      "name": "my_first_feature",
+      "title": "My First Feature",
+      "description": "Description of what this feature does",
       "sdd": true,
       "acceptance": [
-        "__Criterion 1__",
-        "__Criterion 2__",
-        "__Criterion 3__",
-        "__Criterion 4__"
+        "Acceptance criterion 1",
+        "Acceptance criterion 2"
       ],
       "status": "pending"
     }
-  ],
-  "_example": {
-    "project": "HarnessTool",
-    "description": "A CLI tool to scaffold and manage CI/CD harnesses",
-    "features": [
-      {
-        "id": 1,
-        "name": "user_auth",
-        "title": "User Authentication",
-        "description": "Allow users to log in via GitHub OAuth so they can access private harnesses",
-        "acceptance": [
-          "User can initiate GitHub OAuth flow from the CLI",
-          "User is prompted to open a browser and enter a code",
-          "Session token is stored securely after successful authentication",
-          "Expired tokens are rejected with a clear error message"
-        ],
-        "status": "done"
-      }
-    ],
-    "_note": "This is just illustrative — delete this _example section in your real file."
-  }
+  ]
 }

@@ -1,0 +1,130 @@
+package main
+
+import (
+	"embed"
+	"errors"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+)
+
+//go:embed .claude docs AGENT.md CLAUDE.md README.md feature_list.json init.sh session-handoff.md progress CHECKPOINTS.md .gitignore
+var templateFS embed.FS
+
+const version = "0.1.0"
+
+func main() {
+	if len(os.Args) < 2 {
+		printUsage()
+		os.Exit(1)
+	}
+
+	switch os.Args[1] {
+	case "init":
+		cmdInit()
+	case "version", "--version", "-v":
+		fmt.Printf("harness v%s\n", version)
+	case "help", "--help", "-h":
+		printUsage()
+	default:
+		fmt.Fprintf(os.Stderr, "Error: unknown command %q\n", os.Args[1])
+		printUsage()
+		os.Exit(1)
+	}
+}
+
+func printUsage() {
+	fmt.Println(`Usage: harness <command>
+
+Commands:
+  init [directory]    Scaffold project in the given directory (default: .)
+  version             Print version
+  help                Show this help`)
+}
+
+func cmdInit() {
+	target := "."
+	args := os.Args[2:]
+	if len(args) > 0 {
+		target = args[0]
+	}
+
+	absTarget, err := filepath.Abs(target)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	entries, err := os.ReadDir(absTarget)
+	if err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		if err := os.MkdirAll(absTarget, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		for _, e := range entries {
+			if e.Name() == "AGENT.md" || e.Name() == "feature_list.json" {
+				fmt.Fprintf(os.Stderr, "Error: target already contains a harness project\n")
+				os.Exit(1)
+			}
+		}
+	}
+
+	err = fs.WalkDir(templateFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == "." {
+			return nil
+		}
+		destPath := filepath.Join(absTarget, path)
+
+		if d.IsDir() {
+			return os.MkdirAll(destPath, 0755)
+		}
+
+		data, err := templateFS.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		mode := fs.FileMode(0644)
+		if d.Name() == "init.sh" {
+			mode = 0755
+		}
+
+		if err := os.WriteFile(destPath, data, mode); err != nil {
+			return err
+		}
+
+		fmt.Printf("  Created %s\n", filepath.ToSlash(filepath.Join(path)))
+		return nil
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	emptyDirs := []string{"src", "tests", "specs"}
+	for _, dir := range emptyDirs {
+		dirPath := filepath.Join(absTarget, dir)
+		if err := os.MkdirAll(dirPath, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "  Warning: could not create %s/\n", filepath.ToSlash(dirPath))
+		} else {
+			fmt.Printf("  Created %s/\n", filepath.ToSlash(dirPath))
+		}
+	}
+
+	fmt.Println()
+	fmt.Printf("Done! Harness project scaffolded in %s\n", absTarget)
+	fmt.Println()
+	fmt.Println("Next steps:")
+	fmt.Println("  1. Edit feature_list.json with your project info")
+	fmt.Println("  2. Run ./init.sh to verify the environment")
+	fmt.Println("  3. Read AGENT.md to understand the workflow")
+}
