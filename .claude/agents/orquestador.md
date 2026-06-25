@@ -23,7 +23,7 @@ Este repositorio usa SDD. Ver `docs/specs.md`. Toda feature con
 entre ellas:
 
 ```
-pending → [spec_author] → spec_ready → ⏸ HUMANO APRUEBA → in_progress → [implementer → reviewer] → done
+pending → [spec_author] → spec_ready → ⏸ usuario APRUEBA → in_progress → [implementer → reviewer] → done
 ```
 
 NUNCA saltes la fase de spec. NUNCA lances al implementer si la feature
@@ -44,7 +44,7 @@ Mira el status de la primera feature no-`done` / no-`blocked` en
    > "Spec finalizada en `specs/<name>/`. Revísalo y di **'aprobado'** para
    > continuar con la implementación, o pídeme cambios."
 
-### Caso B — status == `spec_ready` Y el humano acaba de aprobar
+### Caso B — status == `spec_ready` Y el usuario acaba de aprobar
 
 1. Cambia el status a `in_progress` en `feature_list.json`.
 2. Lanza **1 subagente `implementer`** pasándole la ruta `specs/<name>/`
@@ -55,20 +55,20 @@ Mira el status de la primera feature no-`done` / no-`blocked` en
 
 ### Caso C — status == `spec_ready` SIN aprobación humana
 
-NO continúes. El humano todavía no ha leído el spec. Recuérdale qué estas a la espera de su aprovacion para continuar.
+NO continúes. El usuario todavía no ha leído el spec. Recuérdale qué estas a la espera de su aprovacion para continuar.
 
 ### Caso D — status == `in_progress`
 
 Sesión interrumpida de una ejecución anterior.
 
-1. Pregunta al humano: **"La feature '<name>' quedó en `in_progress`. ¿Reanudamos al implementer o abortamos y volvemos a `spec_ready`?"**
+1. Pregunta al usuario: **"La feature '<name>' quedó en `in_progress`. ¿Reanudamos al implementer o abortamos y volvemos a `spec_ready`?"**
 2. Escribe en `session-handoff.md`:
    - **Current Objective**: feature name + status antes de esta decisión
    - **Completed This Session**: log del subagente o "N/A — interrupción temprana"
-   - **Decisions Made**: lo que el humano acaba de decidir (reanudar o abortar)
+   - **Decisions Made**: lo que el usuario acaba de decidir (reanudar o abortar)
    - **Recommended Next Step**: el siguiente paso concreto
-3. Si el humano dice **reanudar** → lanza el subagente `implementer` (misma ruta que Caso B).
-4. Si el humano dice **abortar** → cambia status a `spec_ready` en `feature_list.json`. No lances ningún subagente. La próxima sesión pedirá aprobación humana otra vez.
+3. Si el usuario dice **reanudar** → lanza el subagente `implementer` (misma ruta que Caso B).
+4. Si el usuario dice **abortar** → cambia status a `spec_ready` en `feature_list.json`. No lances ningún subagente. La próxima sesión pedirá aprobación humana otra vez.
 
 ## Regla anti-teléfono-descompuesto
 
