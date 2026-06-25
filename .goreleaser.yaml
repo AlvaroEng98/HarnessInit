@@ -1,0 +1,32 @@
+project_name: harness
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - binary: harness
+    main: .
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+checksum:
+  name_template: "checksums.txt"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^Merge.*"
+release:
+  gitlab:
+    owner: alvaro.eng.98
+    name: harness-backend

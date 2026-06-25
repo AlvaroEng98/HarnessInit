@@ -12,7 +12,7 @@ import (
 //go:embed .claude docs AGENT.md CLAUDE.md README.md feature_list.json init.sh session-handoff.md progress CHECKPOINTS.md .gitignore
 var templateFS embed.FS
 
-const version = "0.1.0"
+var version = "0.1.0"
 
 func main() {
 	if len(os.Args) < 2 {
