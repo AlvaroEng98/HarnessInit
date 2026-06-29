@@ -7,9 +7,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-//go:embed .claude docs AGENT.md CLAUDE.md README.md feature_list.json init.sh session-handoff.md progress CHECKPOINTS.md .gitignore
+//go:embed .claude docs AGENT.md CLAUDE.md feature_list.json init.sh session-handoff.md progress CHECKPOINTS.md .gitignore
 var templateFS embed.FS
 
 var version = "0.1.0"
@@ -38,16 +39,41 @@ func printUsage() {
 	fmt.Println(`Usage: harness <command>
 
 Commands:
-  init [directory]    Scaffold project in the given directory (default: .)
-  version             Print version
-  help                Show this help`)
+  init [--client claude|opencode] [directory]    Scaffold project (default: both clients)
+  version                                         Print version
+  help                                            Show this help`)
 }
 
 func cmdInit() {
-	target := "."
+	printBanner()
+
+	detected := detectTools()
+	chosen := selectClient(detected)
+	if chosen == "" {
+		os.Exit(1)
+	}
+	_ = chosen // TODO: usar en lógica de creación de estructura
+
 	args := os.Args[2:]
-	if len(args) > 0 {
-		target = args[0]
+	target := "."
+	client := "both"
+
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--client":
+			if i+1 >= len(args) {
+				fmt.Fprintf(os.Stderr, "Error: --client requires a value (claude|opencode)\n")
+				os.Exit(1)
+			}
+			i++
+			client = args[i]
+			if client != "claude" && client != "opencode" {
+				fmt.Fprintf(os.Stderr, "Error: --client must be claude or opencode\n")
+				os.Exit(1)
+			}
+		default:
+			target = args[i]
+		}
 	}
 
 	absTarget, err := filepath.Abs(target)
@@ -75,6 +101,9 @@ func cmdInit() {
 		}
 	}
 
+	wantClaude := client == "claude" || client == "both"
+	wantOpencode := client == "opencode" || client == "both"
+
 	err = fs.WalkDir(templateFS, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -82,28 +111,63 @@ func cmdInit() {
 		if path == "." {
 			return nil
 		}
-		destPath := filepath.Join(absTarget, path)
 
-		if d.IsDir() {
-			return os.MkdirAll(destPath, 0755)
+		switch {
+		case path == ".claude":
+			if wantClaude {
+				return os.MkdirAll(filepath.Join(absTarget, path), 0755)
+			}
+			return nil // still walk into it to reach agent files
+
+		case path == ".claude/agents":
+			if wantClaude {
+				return os.MkdirAll(filepath.Join(absTarget, path), 0755)
+			}
+			return nil // still walk into it to reach agent files
+
+		case strings.HasPrefix(path, ".claude/agents/"):
+			data, err := templateFS.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			if wantClaude {
+				dest := filepath.Join(absTarget, path)
+				if err := os.WriteFile(dest, data, 0644); err != nil {
+					return err
+				}
+				fmt.Printf("  Created %s\n", filepath.ToSlash(path))
+			}
+			if wantOpencode {
+				dir := filepath.Join(absTarget, ".opencode", "agents")
+				if err := os.MkdirAll(dir, 0755); err != nil {
+					return err
+				}
+				if err := os.WriteFile(filepath.Join(dir, d.Name()), data, 0644); err != nil {
+					return err
+				}
+				fmt.Printf("  Created .opencode/agents/%s\n", d.Name())
+			}
+			return nil
+
+		default:
+			destPath := filepath.Join(absTarget, path)
+			if d.IsDir() {
+				return os.MkdirAll(destPath, 0755)
+			}
+			data, err := templateFS.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			mode := fs.FileMode(0644)
+			if d.Name() == "init.sh" {
+				mode = 0755
+			}
+			if err := os.WriteFile(destPath, data, mode); err != nil {
+				return err
+			}
+			fmt.Printf("  Created %s\n", filepath.ToSlash(path))
+			return nil
 		}
-
-		data, err := templateFS.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		mode := fs.FileMode(0644)
-		if d.Name() == "init.sh" {
-			mode = 0755
-		}
-
-		if err := os.WriteFile(destPath, data, mode); err != nil {
-			return err
-		}
-
-		fmt.Printf("  Created %s\n", filepath.ToSlash(filepath.Join(path)))
-		return nil
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
