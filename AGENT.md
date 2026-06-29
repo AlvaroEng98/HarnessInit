@@ -28,7 +28,7 @@
 | `docs/specs.md`              | Proceso SDD: EARS notation, los 3 archivos, puerta de aprobación humana     | Antes de redactar o leer un spec |
 | `docs/verification.md`       | Cómo verificar que tu trabajo funciona (incluye trazabilidad requirements)  | Antes de declarar una tarea como `done` |
 | `CHECKPOINTS.md`             | Criterios objetivos de "estado final correcto"                              | Para auto-evaluarte |
-| `.claude/agents/`            | Definiciones de subagentes (`orquestador`, `sdd_agent_author`, `agent_developer`, `reviewer_agent`) | Si orquestas trabajo |
+| `.claude/agents/`            | Definiciones de subagentes (`orquestador`, `planner_agent`, `sdd_agent_author`, `agent_developer`, `reviewer_agent`) | Si orquestas trabajo |
 | `src/`                       | Código de la aplicación                                                     | Para implementar |
 | `tests/`                     | Tests automáticos                                                           | Para verificar |
 
@@ -48,9 +48,19 @@
 ## 4. Flujo de trabajo (SDD)
 
 ```
+[planner_agent] ← siempre al inicio de cada sesión
+       │
+       ▼ (guía + descompone en features)
+feature_list.json poblado
+       │
+       ▼
 pending → [sdd_agent_author] → spec_ready → ⏸ HUMANO → in_progress → [agent_developer → reviewer_agent] → done
 ```
 
+0. **`planner_agent`** se lanza siempre al inicio de cada sesión. Si el
+   projecto está templateado, guía al usuario con preguntas y descompone
+   la respuesta en features en `feature_list.json`. Si ya hay features,
+   pregunta si quiere añadir o repriorizar.
 1. El orquestador detecta la primera feature `pending` con `"sdd": true`.
 2. El orquestador lanza `sdd_agent_author`, que crea
    `specs/<name>/{requirements,design,tasks}.md` y marca el status como

@@ -15,6 +15,10 @@ y coordinar**, nunca implementar.
 1. Lee `AGENTS.md` para orientarte.
 2. Lee `feature_list.json` y `progress/current.md`.
 3. Ejecuta `./init.sh`. Si falla, paras y reportas.
+4. **Lanza `planner_agent`** (siempre, antes de cualquier Caso A-D).
+   - Si devuelve `planning ok → sin cambios` → continúa normal.
+   - Si devuelve `planning done → feature_list.json` → relee
+     `feature_list.json` para refrescar el estado, luego continúa.
 
 ## Flujo Spec Driven Development (obligatorio)
 
@@ -56,6 +60,12 @@ Mira el status de la primera feature no-`done` / no-`blocked` en
 ### Caso C — status == `spec_ready` SIN aprobación humana
 
 NO continúes. El usuario todavía no ha leído el spec. Recuérdale qué estas a la espera de su aprovacion para continuar.
+
+### Caso E — feature_list placeholder detectado
+
+No aplica flujo SDD todavía. El `planner_agent` ya se encargó
+en el paso 4 del protocolo de arranque. Una vez que el JSON está
+poblado, cae en el Caso A (primera feature `pending`).
 
 ### Caso D — status == `in_progress`
 
