@@ -163,12 +163,7 @@ func cmdInit() {
 
 // agentsSubdir define dónde van los archivos de agentes según la herramienta.
 func agentsSubdir(toolDir string) string {
-	switch toolDir {
-	case ".cursor":
-		return "rules"
-	default:
-		return "agents"
-	}
+	return "agents"
 }
 
 // copyAgentToTools copia un archivo de agente a todas las herramientas seleccionadas.
