@@ -39,9 +39,9 @@ func printUsage() {
 	fmt.Println(`Usage: harness <command>
 
 Commands:
-  init [--client claude|opencode] [directory]    Scaffold project (default: both clients)
-  version                                         Print version
-  help                                            Show this help`)
+  init [directory]    Scaffold project structure
+  version             Print version
+  help                Show this help`)
 }
 
 func cmdInit() {
@@ -49,30 +49,22 @@ func cmdInit() {
 
 	detected := detectTools()
 	chosen := selectClient(detected)
-	if chosen == "" {
+	if len(chosen) == 0 {
 		os.Exit(1)
 	}
-	_ = chosen // TODO: usar en lógica de creación de estructura
 
-	args := os.Args[2:]
+	// construir set de herramientas elegidas por directorio
+	want := map[string]bool{}
+	for _, t := range chosen {
+		want[t.dir] = true
+	}
+
 	target := "."
-	client := "both"
-
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "--client":
-			if i+1 >= len(args) {
-				fmt.Fprintf(os.Stderr, "Error: --client requires a value (claude|opencode)\n")
-				os.Exit(1)
-			}
-			i++
-			client = args[i]
-			if client != "claude" && client != "opencode" {
-				fmt.Fprintf(os.Stderr, "Error: --client must be claude or opencode\n")
-				os.Exit(1)
-			}
-		default:
-			target = args[i]
+	args := os.Args[2:]
+	for _, a := range args {
+		if !strings.HasPrefix(a, "-") {
+			target = a
+			break
 		}
 	}
 
@@ -101,9 +93,6 @@ func cmdInit() {
 		}
 	}
 
-	wantClaude := client == "claude" || client == "both"
-	wantOpencode := client == "opencode" || client == "both"
-
 	err = fs.WalkDir(templateFS, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -112,62 +101,41 @@ func cmdInit() {
 			return nil
 		}
 
-		switch {
-		case path == ".claude":
-			if wantClaude {
-				return os.MkdirAll(filepath.Join(absTarget, path), 0755)
-			}
-			return nil // still walk into it to reach agent files
-
-		case path == ".claude/agents":
-			if wantClaude {
-				return os.MkdirAll(filepath.Join(absTarget, path), 0755)
-			}
-			return nil // still walk into it to reach agent files
-
-		case strings.HasPrefix(path, ".claude/agents/"):
+		// archivos de agentes — copiar a cada herramienta seleccionada
+		if strings.HasPrefix(path, ".claude/agents/") && !d.IsDir() {
 			data, err := templateFS.ReadFile(path)
 			if err != nil {
 				return err
 			}
-			if wantClaude {
-				dest := filepath.Join(absTarget, path)
-				if err := os.WriteFile(dest, data, 0644); err != nil {
-					return err
-				}
-				fmt.Printf("  Created %s\n", filepath.ToSlash(path))
-			}
-			if wantOpencode {
-				dir := filepath.Join(absTarget, ".opencode", "agents")
-				if err := os.MkdirAll(dir, 0755); err != nil {
-					return err
-				}
-				if err := os.WriteFile(filepath.Join(dir, d.Name()), data, 0644); err != nil {
-					return err
-				}
-				fmt.Printf("  Created .opencode/agents/%s\n", d.Name())
-			}
-			return nil
+			return copyAgentToTools(data, d.Name(), absTarget, want)
+		}
 
-		default:
-			destPath := filepath.Join(absTarget, path)
-			if d.IsDir() {
-				return os.MkdirAll(destPath, 0755)
+		// directorio .claude/agents — solo crear si claude está seleccionado
+		if path == ".claude" || path == ".claude/agents" {
+			if want[".claude"] {
+				return os.MkdirAll(filepath.Join(absTarget, path), 0755)
 			}
-			data, err := templateFS.ReadFile(path)
-			if err != nil {
-				return err
-			}
-			mode := fs.FileMode(0644)
-			if d.Name() == "init.sh" {
-				mode = 0755
-			}
-			if err := os.WriteFile(destPath, data, mode); err != nil {
-				return err
-			}
-			fmt.Printf("  Created %s\n", filepath.ToSlash(path))
 			return nil
 		}
+
+		// resto de archivos y directorios
+		destPath := filepath.Join(absTarget, path)
+		if d.IsDir() {
+			return os.MkdirAll(destPath, 0755)
+		}
+		data, err := templateFS.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		mode := fs.FileMode(0644)
+		if d.Name() == "init.sh" {
+			mode = 0755
+		}
+		if err := os.WriteFile(destPath, data, mode); err != nil {
+			return err
+		}
+		fmt.Printf("  Created %s\n", filepath.ToSlash(path))
+		return nil
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -191,4 +159,31 @@ func cmdInit() {
 	fmt.Println("  1. Edit feature_list.json with your project info")
 	fmt.Println("  2. Run ./init.sh to verify the environment")
 	fmt.Println("  3. Read AGENT.md to understand the workflow")
+}
+
+// agentsSubdir define dónde van los archivos de agentes según la herramienta.
+func agentsSubdir(toolDir string) string {
+	switch toolDir {
+	case ".cursor":
+		return "rules"
+	default:
+		return "agents"
+	}
+}
+
+// copyAgentToTools copia un archivo de agente a todas las herramientas seleccionadas.
+func copyAgentToTools(data []byte, filename, absTarget string, want map[string]bool) error {
+	for toolDir := range want {
+		sub := agentsSubdir(toolDir)
+		dir := filepath.Join(absTarget, toolDir, sub)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+		dest := filepath.Join(dir, filename)
+		if err := os.WriteFile(dest, data, 0644); err != nil {
+			return err
+		}
+		fmt.Printf("  Created %s/%s/%s\n", toolDir, sub, filename)
+	}
+	return nil
 }
